@@ -26,7 +26,7 @@ function register(req, res, next) {
 }
 
 function getAll(req, res, next) {
-    userService.getAll()
+    userService.getAll(req.user)
         .then(users => res.json(users))
         .catch(err => next(err));
 }
@@ -38,13 +38,13 @@ function getCurrent(req, res, next) {
 }
 
 function getById(req, res, next) {
-    userService.getById(req.params.id)
+    userService.getById(req.params.id, req.user)
         .then(user => user ? res.json(user) : res.sendStatus(404))
         .catch(err => next(err));
 }
 
 function update(req, res, next) {
-    userService.update(req.params.id, req.body)
+    userService.update(req.params.id, req.body, req.user)
         .then(() => res.json({}))
         .catch(err => next(err));
 }

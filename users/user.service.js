@@ -16,7 +16,7 @@ module.exports = {
 async function authenticate({ username, password }) {
     const user = await User.findOne({ username });
     if (user && bcrypt.compareSync(password, user.hash)) {
-        const token = jwt.sign({ sub: user.id }, config.secret, { expiresIn: '7d' });
+        const token = jwt.sign({ sub: user.id, isAdmin: user.isAdmin }, config.secret, { expiresIn: '7d' });
         return {
             ...user.toJSON(),
             token
@@ -24,9 +24,9 @@ async function authenticate({ username, password }) {
     }
 }
 
-async function getAll() {
-    
-    if(this.User.isAdmin === true)
+async function getAll(user) {
+    console.log(user)
+    if(user.isAdmin === true)
     {
         return await User.find();
     }else
@@ -35,8 +35,13 @@ async function getAll() {
     }
 }
 
-async function getById(id) {
+async function getById(id, user) {
+    console.log(id);
+    console.log(user);
+    if(/*user.isAdmin === true || */user.sub === id) {
     return await User.findById(id);
+}
+    
 }
 
 async function create(userParam) {
@@ -56,24 +61,34 @@ async function create(userParam) {
     await user.save();
 }
 
-async function update(id, userParam) {
-    const user = await User.findById(id);
+async function update(id, userParam, user) {
+    if(user.sub === id){
+        const user = await User.findById(id);
 
-    // validate
-    if (!user) throw 'User not found';
-    if (user.username !== userParam.username && await User.findOne({ username: userParam.username })) {
-        throw 'Username "' + userParam.username + '" is already taken';
+        // validate
+        if (!user) throw 'User not found';
+        if (user.username !== userParam.username && await User.findOne({ username: userParam.username })) {
+            throw 'Username "' + userParam.username + '" is already taken';
+        }
+
+        // hash password if it was entered
+        if (userParam.password) {
+            userParam.hash = bcrypt.hashSync(userParam.password, 10);
+        }
+
+        // copy userParam properties to user
+        Object.assign(user, userParam);
+
+        await user.save();
+        throw 'You are updated';
+    }
+    else
+    {
+        throw 'You can only change yourself';
     }
 
-    // hash password if it was entered
-    if (userParam.password) {
-        userParam.hash = bcrypt.hashSync(userParam.password, 10);
-    }
-
-    // copy userParam properties to user
-    Object.assign(user, userParam);
-
-    await user.save();
+    
+    
 }
 
 async function _delete(id) {
