@@ -25,7 +25,14 @@ async function authenticate({ username, password }) {
 }
 
 async function getAll() {
-    return await User.find();
+    
+    if(this.User.isAdmin === true)
+    {
+        return await User.find();
+    }else
+    {
+        throw 'Only admin users can see all users';
+    }
 }
 
 async function getById(id) {
