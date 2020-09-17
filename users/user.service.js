@@ -38,9 +38,12 @@ async function getAll(user) {
 async function getById(id, user) {
     console.log(id);
     console.log(user);
-    if(/*user.isAdmin === true || */user.sub === id) {
-    return await User.findById(id);
-}
+    if(user.isAdmin === true || user.sub === id) {
+        return await User.findById(id);
+    }
+    else{
+        throw 'You are not allowed to do that';
+    }
     
 }
 
@@ -91,6 +94,14 @@ async function update(id, userParam, user) {
     
 }
 
-async function _delete(id) {
-    await User.findByIdAndRemove(id);
+async function _delete(id, user) {
+    if(user.isAdmin === true || user.sub === id) {
+        await User.findByIdAndRemove(id);
+        throw 'User ' + id + ' has been deleted'
+    }
+    else{
+        throw 'You are not allowed to do that';
+    }
+
+    
 }
